@@ -1,0 +1,656 @@
+[mod]
+id = "elevatorid"
+version = "1.16.6"
+
+# The Horizon commit this bundle was built and tested on.
+[compatibility]
+horizon_revision = "6560641ba51a452f6bc2407baa4eb1b3be517ca8"
+
+[[module]]
+id = "elevator"
+file = "crates/horizon-client/src/game.rs"
+name = "elevatorid"
+source = "elevator.rs"
+
+[[injection]]
+id = "elevator-be"
+kind = "HEAD"
+hook = "block_entity"
+hook_version = 1
+helper = "h_be.rs"
+bindings = [
+  { name = "block", ty = "&str", value = "block" },
+  { name = "entity", ty = "&mut Option<(String, horizon_world::nbt::Compound)>", value = "&mut *entity" },
+]
+
+[[injection]]
+id = "elevator-be-ticks"
+kind = "HEAD"
+hook = "block_entity_ticks"
+hook_version = 1
+helper = "h_be_ticks.rs"
+bindings = [
+  { name = "block", ty = "&str", value = "block" },
+  { name = "ticks", ty = "&mut bool", value = "&mut *ticks" },
+]
+
+[[injection]]
+id = "elevator-be-container"
+kind = "HEAD"
+hook = "block_entity_container"
+hook_version = 1
+helper = "h_be_container.rs"
+bindings = [
+  { name = "block", ty = "&str", value = "block" },
+  { name = "container", ty = "&mut Option<horizon_client::containers::ModContainer>", value = "&mut *container" },
+]
+
+[[injection]]
+id = "elevator-be-tick"
+kind = "HEAD"
+hook = "block_entity_tick"
+hook_version = 1
+helper = "h_be_tick.rs"
+bindings = [
+  { name = "game", ty = "&mut crate::game::Game<'_>", value = "&mut *self" },
+  { name = "pos", ty = "[i32; 3]", value = "pos" },
+  { name = "entity", ty = "&mut horizon_client::containers::ModBlockEntity", value = "&mut *entity" },
+]
+
+[[injection]]
+id = "elevator-update-tag"
+kind = "HEAD"
+hook = "block_entity_update_tag"
+hook_version = 1
+helper = "h_update_tag.rs"
+bindings = [
+  { name = "entity", ty = "&horizon_client::containers::ModBlockEntity", value = "&*entity" },
+  { name = "tag", ty = "&mut Option<horizon_world::nbt::Compound>", value = "&mut *tag" },
+]
+
+[[injection]]
+id = "elevator-submit"
+kind = "HEAD"
+hook = "block_entity_submit"
+hook_version = 1
+helper = "h_submit.rs"
+bindings = [
+  { name = "game", ty = "&crate::game::Game<'_>", value = "&*self" },
+  { name = "pos", ty = "[i32; 3]", value = "pos" },
+  { name = "block", ty = "&str", value = "block" },
+  { name = "state", ty = "horizon_world::registry::BlockStateId", value = "state" },
+  { name = "entity", ty = "&horizon_client::containers::ModBlockEntity", value = "&*entity" },
+  { name = "draw", ty = "&mut crate::game::native_block_entity_draw::BlockEntityDraw", value = "&mut *draw" },
+]
+
+[[injection]]
+id = "elevator-right-click"
+kind = "HEAD"
+hook = "right_click_block"
+hook_version = 1
+helper = "h_right_click.rs"
+bindings = [
+  { name = "game", ty = "&mut crate::game::Game<'_>", value = "&mut *self" },
+  { name = "pos", ty = "[i32; 3]", value = "pos" },
+  { name = "face", ty = "[i32; 3]", value = "face" },
+  { name = "canceled", ty = "&mut bool", value = "&mut *canceled" },
+]
+
+[[injection]]
+id = "elevator-menu-button"
+kind = "HEAD"
+hook = "menu_button_v2"
+hook_version = 1
+helper = "h_menu_button.rs"
+bindings = [
+  { name = "game", ty = "&mut crate::game::Game<'_>", value = "&mut *self" },
+  { name = "pos", ty = "[i32; 3]", value = "pos" },
+  { name = "entity", ty = "&mut horizon_client::containers::ModBlockEntity", value = "&mut *entity" },
+  { name = "id", ty = "i32", value = "id" },
+  { name = "carried", ty = "&mut Option<horizon_client::items::ItemStack>", value = "&mut *carried" },
+]
+
+[[injection]]
+id = "elevator-screen"
+kind = "HEAD"
+hook = "screen"
+hook_version = 1
+helper = "h_screen.rs"
+bindings = [
+  { name = "game", ty = "&crate::game::Game<'_>", value = "&*self" },
+  { name = "block", ty = "&str", value = "block" },
+  { name = "screen", ty = "&mut Option<crate::game::native_hooks::NativeScreen>", value = "&mut *screen" },
+]
+
+[[injection]]
+id = "elevator-screen-draw"
+kind = "HEAD"
+hook = "screen_draw"
+hook_version = 1
+helper = "h_screen_draw.rs"
+bindings = [
+  { name = "game", ty = "&crate::game::Game<'_>", value = "&*self" },
+  { name = "block", ty = "&str", value = "block" },
+  { name = "data", ty = "&[i32]", value = "data" },
+  { name = "batch", ty = "&mut horizon_client::hud::HudBatch", value = "&mut *batch" },
+  { name = "origin", ty = "[f32; 2]", value = "origin" },
+]
+
+[[injection]]
+id = "elevator-screen-click"
+kind = "HEAD"
+hook = "screen_click"
+hook_version = 1
+helper = "h_screen_click.rs"
+bindings = [
+  { name = "game", ty = "&crate::game::Game<'_>", value = "&*self" },
+  { name = "block", ty = "&str", value = "block" },
+  { name = "at", ty = "[f32; 2]", value = "at" },
+  { name = "right", ty = "bool", value = "right" },
+  { name = "button", ty = "&mut Option<i32>", value = "&mut *button" },
+]
+
+[[injection]]
+id = "elevator-screen-tooltip"
+kind = "HEAD"
+hook = "screen_tooltip"
+hook_version = 1
+helper = "h_screen_tooltip.rs"
+bindings = [
+  { name = "block", ty = "&str", value = "block" },
+  { name = "at", ty = "[f32; 2]", value = "at" },
+  { name = "lines", ty = "&mut Vec<String>", value = "&mut *lines" },
+]
+
+[[injection]]
+id = "elevator-net-from-client"
+kind = "HEAD"
+hook = "net_from_client"
+hook_version = 1
+helper = "h_net_from_client.rs"
+bindings = [
+  { name = "game", ty = "&mut crate::game::Game<'_>", value = "&mut *self" },
+  { name = "player", ty = "u128", value = "player" },
+  { name = "channel", ty = "&str", value = "channel" },
+  { name = "data", ty = "&[u8]", value = "data" },
+]
+
+[[injection]]
+id = "elevator-tick"
+kind = "HEAD"
+hook = "tick"
+hook_version = 1
+helper = "h_tick.rs"
+bindings = [
+  { name = "game", ty = "&mut crate::game::Game<'_>", value = "&mut *self" },
+]
+
+[[injection]]
+id = "elevator-kit-frame"
+kind = "HEAD"
+hook = "frame"
+hook_version = 1
+helper = "h_kit_frame.rs"
+bindings = [
+  { name = "game", ty = "&mut crate::game::Game<'_>", value = "&mut *self" },
+]
+
+[[injection]]
+id = "elevator-signal"
+kind = "HEAD"
+hook = "block_signal"
+hook_version = 1
+helper = "h_signal.rs"
+bindings = [
+  { name = "pos", ty = "horizon_core::position::BlockPos", value = "pos" },
+  { name = "face", ty = "horizon_core::geometry::Direction", value = "face" },
+  { name = "signal", ty = "&mut i32", value = "&mut *signal" },
+]
+
+[[injection]]
+id = "elevator-signal-source"
+kind = "HEAD"
+hook = "is_signal_source"
+hook_version = 1
+helper = "h_signal_source.rs"
+bindings = [
+  { name = "level", ty = "&crate::game::GameLevel<'_>", value = "&*self" },
+  { name = "state", ty = "horizon_world::registry::BlockStateId", value = "state" },
+  { name = "source", ty = "&mut bool", value = "&mut *source" },
+]
+
+[[injection]]
+id = "elevator-server-tick"
+kind = "HEAD"
+hook = "server_tick"
+hook_version = 1
+helper = "server_tick.rs"
+bindings = [
+  { name = "game", ty = "&mut crate::game::Game<'_>", value = "&mut *self" },
+  { name = "phase", ty = "&crate::game::native_lifecycle::ServerTickPhase", value = "&phase" },
+]
+
+[[module]]
+id = "mesh-table"
+file = "crates/horizon-client-render/src/mesher.rs"
+name = "hz_elevator"
+source = "mesh_table.rs"
+
+[[module]]
+id = "spawn-table"
+file = "crates/horizon-client/src/mobs/data.rs"
+name = "hz_elevator_spawn"
+source = "spawn_table.rs"
+
+[[injection]]
+id = "elevator-spawn-flag"
+kind = "RETURN"
+target = "horizon_client::mobs::data::MobData::state"
+helper = "spawn_flag.rs"
+bindings = [
+  { name = "value", ty = "StateData", value = "$value" },
+  { name = "id", ty = "horizon_world::registry::BlockStateId", value = "id" },
+]
+
+[[injection]]
+id = "elevator-list"
+kind = "HEAD"
+hook = "mods"
+hook_version = 1
+helper = "list.rs"
+bindings = [
+  { name = "mods", ty = "&mut Vec<crate::game::native_hooks::NativeMod>", value = "&mut *mods" },
+]
+
+[[injection]]
+id = "elevator-mesh-camos"
+kind = "RETURN"
+target = "horizon_client_render::mesher::Padded::fill"
+helper = "mesh_camos.rs"
+bindings = [
+  { name = "value", ty = "()", value = "$value" },
+  { name = "pad", ty = "&mut Padded", value = "&mut *self" },
+  { name = "region", ty = "&[[Option<&Chunk>; 3]; 3]", value = "region" },
+  { name = "sy", ty = "i32", value = "sy" },
+]
+
+[[injection]]
+id = "elevator-arrows"
+kind = "RETURN"
+target = "horizon_client::game::native_block_entity_draw::Game<'_>::untemplated_mod_block_entities"
+helper = "arrows.rs"
+bindings = [
+  { name = "value", ty = "Vec<([i32; 3], u32)>", value = "$value" },
+  { name = "game", ty = "&crate::game::Game<'_>", value = "&*self" },
+]
+
+[[injection]]
+id = "elevator-light-state"
+kind = "HEAD"
+target = "horizon_client::mod_content::Plan<'_>::override_gameplay"
+helper = "light_state.rs"
+bindings = [
+  { name = "b", ty = "&NewBlock", value = "b" },
+  { name = "combo", ty = "&[(String, String)]", value = "combo" },
+  { name = "row", ty = "&mut J", value = "&mut *row" },
+]
+
+[[injection]]
+id = "elevator-embedded-content"
+kind = "HEAD"
+cancellable = true
+target = "horizon_client::game::mods::content_root"
+helper = "embedded_content.rs"
+bindings = [
+  { name = "root", ty = "&std::path::Path", value = "root" },
+  { name = "enabled", ty = "&std::collections::BTreeSet<String>", value = "enabled" },
+  { name = "dev", ty = "&[std::path::PathBuf]", value = "dev" },
+]
+
+[[injection]]
+id = "elevator-outline"
+kind = "HEAD"
+cancellable = true
+target = "horizon_client::game::Game<'_>::outline_boxes"
+helper = "outline.rs"
+bindings = [
+  { name = "game", ty = "&crate::game::Game<'_>", value = "&*self" },
+  { name = "pos", ty = "[i32; 3]", value = "pos" },
+]
+
+[[injection]]
+id = "elevator-collision"
+kind = "HEAD"
+cancellable = true
+target = "horizon_client_render::collisions::<SceneCollisions<'_,'_> as BlockCollisionWorld>::context_shape"
+helper = "collision.rs"
+bindings = [
+  { name = "scene", ty = "&mut SceneCollisions<'_, '_>", value = "&mut *self" },
+  { name = "p", ty = "BlockPos", value = "p" },
+  { name = "context", ty = "&CollisionContext<'_>", value = "context" },
+]
+
+[[crate]]
+id = "optional"
+path = "optional"
+
+# ---- BEGIN JEI KIT (written by jei-kit/apply.py; don't edit here)
+[[injection]]
+id = "elevatorid-kit-panel-event"
+priority = 110
+kind = "HEAD"
+hook = "panel_event"
+hook_version = 1
+helper = "kit_jei_event.rs"
+bindings = [
+  { name = "game", ty = "&mut crate::game::Game<'_>", value = "&mut *self" },
+  { name = "mod_id", ty = "&str", value = "mod_id" },
+  { name = "event", ty = "&crate::game::native_hooks::NativePanelEvent", value = "event" },
+]
+
+[[module]]
+id = "elevatorid-kit-collection"
+file = "crates/horizon-client/src/game.rs"
+name = "hz_kit_collection_elevatorid"
+source = "kit_collection.rs"
+
+[[module]]
+id = "elevatorid-kit-collection-size"
+file = "crates/horizon-client/src/game/native_panel.rs"
+name = "hz_kit_panel_elevatorid"
+source = "kit_panel.rs"
+
+[[module]]
+id = "elevatorid-kit-loot-items"
+file = "crates/horizon-items/src/items.rs"
+name = "hz_kit_loot_elevatorid"
+source = "kit_loot_items.rs"
+
+[[module]]
+id = "elevatorid-kit-loot-keys"
+file = "crates/horizon-world/src/loot.rs"
+name = "hz_kit_keys_elevatorid"
+source = "kit_loot_keys.rs"
+
+[[module]]
+id = "elevatorid-kit-window"
+file = "crates/horizon-client/src/game.rs"
+name = "hz_kit_window_elevatorid"
+source = "kit_window.rs"
+
+[[module]]
+id = "elevatorid-kit-creative"
+file = "crates/horizon-client/src/game.rs"
+name = "hz_kit_creative_elevatorid"
+source = "kit_creative.rs"
+
+[[injection]]
+id = "elevatorid-kit-window-hud-before"
+priority = 110
+kind = "HEAD"
+target = "horizon_client::game::Game<'_>::hud"
+helper = "kit_window_hud_before.rs"
+bindings = [
+  { name = "game", ty = "&mut crate::game::Game<'_>", value = "&mut *self" },
+]
+
+[[injection]]
+id = "elevatorid-kit-window-hud-after"
+priority = 110
+kind = "HEAD"
+target = "horizon_client::game::music::Game<'_>::draw_music_toast"
+helper = "kit_window_hud_after.rs"
+bindings = [
+  { name = "game", ty = "&mut crate::game::Game<'_>", value = "&mut *self" },
+  { name = "batch", ty = "&mut horizon_client::hud::HudBatch", value = "&mut *batch" },
+]
+
+[[injection]]
+id = "elevatorid-kit-window-pressed"
+priority = 110
+kind = "HEAD"
+hook = "screen_mouse_button_pressed_pre"
+hook_version = 1
+helper = "kit_window_pressed.rs"
+bindings = [
+  { name = "game", ty = "&crate::game::Game<'_>", value = "&*self" },
+  { name = "screen", ty = "&crate::game::native_hooks::NativeScreenView<'_>", value = "screen" },
+  { name = "button", ty = "i32", value = "button" },
+  { name = "canceled", ty = "&mut bool", value = "&mut *canceled" },
+]
+
+[[injection]]
+id = "elevatorid-kit-window-released"
+priority = 110
+kind = "HEAD"
+hook = "screen_mouse_button_released_pre"
+hook_version = 1
+helper = "kit_panel_released.rs"
+bindings = [
+  { name = "screen", ty = "&crate::game::native_hooks::NativeScreenView<'_>", value = "screen" },
+]
+
+[[injection]]
+id = "elevatorid-kit-window-key"
+priority = 110
+kind = "HEAD"
+hook = "screen_key_pressed_pre"
+hook_version = 1
+helper = "kit_window_key.rs"
+bindings = [
+  { name = "game", ty = "&crate::game::Game<'_>", value = "&*self" },
+  { name = "screen", ty = "&crate::game::native_hooks::NativeScreenView<'_>", value = "screen" },
+  { name = "key", ty = "&str", value = "key" },
+  { name = "canceled", ty = "&mut bool", value = "&mut *canceled" },
+]
+
+[[injection]]
+id = "elevatorid-kit-window-char"
+priority = 110
+kind = "HEAD"
+hook = "screen_char_typed_pre"
+hook_version = 1
+helper = "kit_window_char.rs"
+bindings = [
+  { name = "game", ty = "&crate::game::Game<'_>", value = "&*self" },
+  { name = "c", ty = "char", value = "c" },
+  { name = "canceled", ty = "&mut bool", value = "&mut *canceled" },
+]
+
+[[injection]]
+id = "elevatorid-kit-window-scrolled"
+priority = 110
+kind = "HEAD"
+hook = "screen_mouse_scrolled_pre"
+hook_version = 1
+helper = "kit_window_scrolled.rs"
+bindings = [
+  { name = "game", ty = "&crate::game::Game<'_>", value = "&*self" },
+  { name = "scroll", ty = "[f64; 2]", value = "scroll" },
+  { name = "canceled", ty = "&mut bool", value = "&mut *canceled" },
+]
+
+[[injection]]
+id = "elevatorid-kit-panel-tint"
+priority = 110
+kind = "HEAD"
+target = "horizon_client::game::native_panel::Game<'_>::draw_mod_browser"
+helper = "kit_panel_tint.rs"
+bindings = [
+  { name = "game", ty = "&Game<'_>", value = "&*self" },
+  { name = "batch", ty = "&mut HudBatch", value = "&mut *batch" },
+]
+
+[[injection]]
+id = "elevatorid-kit-no-recipes-line"
+priority = 110
+kind = "HEAD"
+cancellable = true
+target = "horizon_client::game::native_hooks::Game<'_>::native_chat"
+helper = "kit_no_recipes_line.rs"
+bindings = [
+  { name = "text", ty = "&str", value = "text" },
+]
+
+[[injection]]
+id = "elevatorid-kit-creative-width"
+priority = 110
+kind = "HEAD"
+cancellable = true
+target = "horizon_client::game::native_hooks::Game<'_>::native_screen_width"
+helper = "kit_creative_width.rs"
+
+[[module]]
+id = "elevatorid-kit-layer"
+file = "crates/horizon-client/src/game.rs"
+name = "hz_kit_layer_elevatorid"
+source = "kit_layer.rs"
+
+[[module]]
+id = "elevatorid-kit-guide"
+file = "crates/horizon-client/src/game.rs"
+name = "hz_kit_guide_elevatorid"
+source = "kit_guide.rs"
+
+[[injection]]
+id = "elevatorid-kit-layer-frame"
+kind = "HEAD"
+hook = "frame"
+hook_version = 1
+helper = "kit_layer_frame.rs"
+bindings = [
+  { name = "game", ty = "&mut crate::game::Game<'_>", value = "&mut *self" },
+]
+
+[[injection]]
+id = "elevatorid-kit-guide-frame"
+priority = 50
+kind = "HEAD"
+hook = "frame"
+hook_version = 1
+helper = "kit_guide_frame.rs"
+bindings = [
+  { name = "game", ty = "&mut crate::game::Game<'_>", value = "&mut *self" },
+]
+
+[[injection]]
+id = "elevatorid-kit-guide-render_post"
+priority = 50
+kind = "HEAD"
+hook = "screen_render_post"
+hook_version = 1
+helper = "kit_guide_render_post.rs"
+bindings = [
+  { name = "game", ty = "&crate::game::Game<'_>", value = "&*self" },
+  { name = "batch", ty = "&mut horizon_client::hud::HudBatch", value = "&mut *batch" },
+  { name = "screen", ty = "&crate::game::native_hooks::NativeScreenView<'_>", value = "&*screen" },
+]
+
+[[injection]]
+id = "elevatorid-kit-guide-pressed"
+priority = 200
+kind = "HEAD"
+hook = "screen_mouse_button_pressed_pre"
+hook_version = 1
+helper = "kit_guide_pressed.rs"
+bindings = [
+  { name = "game", ty = "&crate::game::Game<'_>", value = "&*self" },
+  { name = "screen", ty = "&crate::game::native_hooks::NativeScreenView<'_>", value = "&*screen" },
+  { name = "button", ty = "i32", value = "button" },
+  { name = "canceled", ty = "&mut bool", value = "&mut *canceled" },
+]
+
+[[injection]]
+id = "elevatorid-kit-guide-key"
+priority = 200
+kind = "HEAD"
+hook = "screen_key_pressed_pre"
+hook_version = 1
+helper = "kit_guide_key.rs"
+bindings = [
+  { name = "game", ty = "&crate::game::Game<'_>", value = "&*self" },
+  { name = "screen", ty = "&crate::game::native_hooks::NativeScreenView<'_>", value = "&*screen" },
+  { name = "key", ty = "&str", value = "key" },
+  { name = "repeat", ty = "bool", value = "repeat" },
+  { name = "canceled", ty = "&mut bool", value = "&mut *canceled" },
+]
+
+[[injection]]
+id = "elevatorid-kit-guide-char"
+priority = 200
+kind = "HEAD"
+hook = "screen_char_typed_pre"
+hook_version = 1
+helper = "kit_guide_char.rs"
+bindings = [
+  { name = "game", ty = "&crate::game::Game<'_>", value = "&*self" },
+  { name = "c", ty = "char", value = "c" },
+  { name = "canceled", ty = "&mut bool", value = "&mut *canceled" },
+]
+
+[[injection]]
+id = "elevatorid-kit-guide-scrolled"
+priority = 200
+kind = "HEAD"
+hook = "screen_mouse_scrolled_pre"
+hook_version = 1
+helper = "kit_guide_scrolled.rs"
+bindings = [
+  { name = "game", ty = "&crate::game::Game<'_>", value = "&*self" },
+  { name = "scroll", ty = "[f64; 2]", value = "scroll" },
+  { name = "canceled", ty = "&mut bool", value = "&mut *canceled" },
+]
+
+[[injection]]
+id = "elevatorid-kit-guide-dragged"
+priority = 200
+kind = "HEAD"
+hook = "screen_mouse_dragged_pre"
+hook_version = 1
+helper = "kit_guide_dragged.rs"
+bindings = [
+  { name = "delta", ty = "[f32; 2]", value = "delta" },
+  { name = "canceled", ty = "&mut bool", value = "&mut *canceled" },
+]
+
+[[injection]]
+id = "elevatorid-kit-guide-released"
+priority = 200
+kind = "HEAD"
+hook = "screen_mouse_button_released_pre"
+hook_version = 1
+helper = "kit_guide_released.rs"
+bindings = [
+  { name = "game", ty = "&crate::game::Game<'_>", value = "&*self" },
+  { name = "canceled", ty = "&mut bool", value = "&mut *canceled" },
+]
+
+[[injection]]
+id = "elevatorid-kit-guide-tooltip"
+priority = 200
+kind = "HEAD"
+hook = "tooltip"
+hook_version = 1
+helper = "kit_guide_tooltip.rs"
+bindings = [
+  { name = "stack", ty = "&horizon_client::items::ItemStack", value = "&*stack" },
+  { name = "lines", ty = "&mut Vec<(horizon_client::text::Text, u32)>", value = "&mut *lines" },
+]
+
+[[injection]]
+id = "elevatorid-kit-guide-shown"
+priority = 200
+kind = "HEAD"
+target = "horizon_client::game::native_hooks::Game<'_>::native_tooltip_render_pre"
+helper = "kit_guide_shown.rs"
+bindings = [
+  { name = "stack", ty = "&ItemStack", value = "stack" },
+]
+
+
+[[module]]
+id = "elevatorid-kit-marker"
+file = "crates/horizon-client/src/game.rs"
+name = "hz_kit_v2_elevatorid"
+source = "kit_marker.rs"
+# ---- END JEI KIT
