@@ -1,6 +1,6 @@
 [mod]
 id = "elevatorid"
-version = "1.16.6"
+version = "1.16.7"
 
 # The Horizon commit this bundle was built and tested on.
 [compatibility]
@@ -651,6 +651,6 @@ bindings = [
 [[module]]
 id = "elevatorid-kit-marker"
 file = "crates/horizon-client/src/game.rs"
-name = "hz_kit_v2_elevatorid"
+name = "hz_kit_v3_elevatorid"
 source = "kit_marker.rs"
 # ---- END JEI KIT

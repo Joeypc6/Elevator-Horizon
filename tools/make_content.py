@@ -168,7 +168,7 @@ def main(jar, out):
         "# Elevator's blocks and items, from elevatorid-fabric-26.3-1.16.6.jar by elevator-horizon/tools/make_content.py.",
         f'id = "{ID}"',
         'name = "Elevator (blocks and items)"',
-        'version = "1.16.6"',
+        'version = "1.16.7"',
         'description = "Elevator\'s blocks, recipes and textures."',
         'authors = ["VsnGamer"]',
         'api = "0.2"',
