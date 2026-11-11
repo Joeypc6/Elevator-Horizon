@@ -30,6 +30,10 @@ On Horizon commit `6560641` (Minecraft 26.3), on Windows: single player, LAN wit
 blocks, camouflage (with a light source, tinted grass and an AE2 glass block), mobs landing on a slab camouflage, every option, the JEI window
 and the guide. **Not tested:** the sound by ear, and exact tint colours (by screenshot only).
 
+Also built on Horizon commit `fdc87ae` (Nightly 2026-11-08) as `native-fdc87ae-83d10460ef68`, with AE2, Jade, JEI (mod kit 14), Iron
+Furnaces, Hostile Neural Networks, Tinkers' Construct, Ender IO, Powah and Apothic Spawners: all ten compile together, and the W guide's
+page with its 3D scene of elevators opens in game. Kit 14 draws recipe fluids as their textures, never as buckets.
+
 ## Build
 
 This is a Horizon native mod bundle: Rust mixins compiled into the game. Native mods are unsandboxed code that runs with your rights, so
