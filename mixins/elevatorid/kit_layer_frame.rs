@@ -1,7 +1,12 @@
+// `frame`: the layer's work while JEI is on; its window shut when JEI is turned off.
 fn kit_layer_frame_elevatorid(game: &mut crate::game::Game<'_>) {
     elevatorid_optional::if_kit_jei!("elevatorid", {
     if game.native_on(crate::game::jei::ID) {
         crate::game::hz_kit_layer_elevatorid::frame(game);
+    } else if crate::game::hz_kit_window_elevatorid::is_open() {
+        // JEI turned off with its window open: nothing would close it, and it would keep taking the screen's input.
+        crate::game::hz_kit_window_elevatorid::close();
+        let _ = crate::game::hz_kit_window_elevatorid::take_acts();
     }
-} else { () })
+} else { let _ = game; () })
 }

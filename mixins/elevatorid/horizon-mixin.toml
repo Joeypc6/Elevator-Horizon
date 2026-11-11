@@ -1,10 +1,10 @@
 [mod]
 id = "elevatorid"
-version = "1.16.7"
+version = "1.16.8"
 
 # The Horizon commit this bundle was built and tested on.
 [compatibility]
-horizon_revision = "6560641ba51a452f6bc2407baa4eb1b3be517ca8"
+horizon_revision = "fdc87aecdbd116bf1e08adcd062fcbaea8c2e2ca"
 
 [[module]]
 id = "elevator"
@@ -355,6 +355,12 @@ name = "hz_kit_collection_elevatorid"
 source = "kit_collection.rs"
 
 [[module]]
+id = "elevatorid-kit-math"
+file = "crates/horizon-client/src/game.rs"
+name = "hz_kit_math_elevatorid"
+source = "kit_math.rs"
+
+[[module]]
 id = "elevatorid-kit-collection-size"
 file = "crates/horizon-client/src/game/native_panel.rs"
 name = "hz_kit_panel_elevatorid"
@@ -468,6 +474,28 @@ bindings = [
   { name = "game", ty = "&crate::game::Game<'_>", value = "&*self" },
   { name = "scroll", ty = "[f64; 2]", value = "scroll" },
   { name = "canceled", ty = "&mut bool", value = "&mut *canceled" },
+]
+
+[[injection]]
+id = "elevatorid-kit-slot-tip"
+priority = 110
+kind = "HEAD"
+cancellable = true
+target = "horizon_client::game::stations::Game<'_>::draw_slot_tooltip"
+helper = "kit_slot_tip.rs"
+bindings = [
+  { name = "game", ty = "&crate::game::Game<'_>", value = "&*self" },
+]
+
+[[injection]]
+id = "elevatorid-kit-screen-tip"
+priority = 110
+kind = "HEAD"
+cancellable = true
+target = "horizon_client::game::native_hooks::Game<'_>::draw_native_screen_tooltip"
+helper = "kit_screen_tip.rs"
+bindings = [
+  { name = "game", ty = "&crate::game::Game<'_>", value = "&*self" },
 ]
 
 [[injection]]
@@ -638,6 +666,16 @@ bindings = [
 ]
 
 [[injection]]
+id = "elevatorid-kit-guide-hide-tip"
+priority = 190
+kind = "HEAD"
+target = "horizon_client::game::native_hooks::Game<'_>::native_tooltip_render_pre"
+helper = "kit_guide_hide_tip.rs"
+bindings = [
+  { name = "cancel", ty = "&mut bool", value = "&mut *cancel" },
+]
+
+[[injection]]
 id = "elevatorid-kit-guide-shown"
 priority = 200
 kind = "HEAD"
@@ -651,6 +689,6 @@ bindings = [
 [[module]]
 id = "elevatorid-kit-marker"
 file = "crates/horizon-client/src/game.rs"
-name = "hz_kit_v3_elevatorid"
+name = "hz_kit_v14_elevatorid"
 source = "kit_marker.rs"
 # ---- END JEI KIT

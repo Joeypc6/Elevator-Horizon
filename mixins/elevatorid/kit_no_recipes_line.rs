@@ -1,3 +1,4 @@
+// `native_chat`: holds back JEI's "No recipes for" while the window shows more than JEI's own recipes.
 fn jei_no_recipes_line(text: &str) -> core::ops::ControlFlow<()> {
     elevatorid_optional::if_kit_jei!("elevatorid", {
     if crate::game::hz_kit_layer_elevatorid::chat_allowed(text) {
@@ -5,5 +6,5 @@ fn jei_no_recipes_line(text: &str) -> core::ops::ControlFlow<()> {
     } else {
         core::ops::ControlFlow::Break(())
     }
-} else { core::ops::ControlFlow::Continue(()) })
+} else { let _ = text; core::ops::ControlFlow::Continue(()) })
 }

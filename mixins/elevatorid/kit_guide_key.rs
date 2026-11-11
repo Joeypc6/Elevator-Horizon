@@ -4,5 +4,5 @@ fn kit_guide_key_elevatorid(game: &crate::game::Game<'_>, screen: &crate::game::
         return;
     }
     crate::game::hz_kit_guide_elevatorid::key(game, screen.menu, key, repeat, canceled);
-} else { () })
+} else { let _ = (game, screen, key, repeat, canceled); () })
 }

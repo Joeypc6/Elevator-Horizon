@@ -243,7 +243,7 @@ pub fn block_entity_container(block: &str, out: &mut Option<ModContainer>) {
     }
 }
 
-pub fn block_entity_tick(game: &mut Game<'_>, pos: Pos, entity: &mut ModBlockEntity) {
+pub(in crate::game) fn block_entity_tick(game: &mut Game<'_>, pos: Pos, entity: &mut ModBlockEntity) {
     if !is_elevator(&entity.id) {
         return;
     }
@@ -275,7 +275,7 @@ pub fn update_tag(entity: &ModBlockEntity, tag: &mut Option<Compound>) {
 
 /// The mesher draws the camouflage as the block itself (`camo_table`). What's left to draw is the arrow, which sits on
 /// any elevator: its own model with the camouflaged state, which is only the arrow.
-pub fn submit(
+pub(in crate::game) fn submit(
     game: &Game<'_>,
     block: &str,
     state: BlockStateId,
@@ -293,7 +293,7 @@ pub fn submit(
 
 /// The mesher lists block entities by what it draws, and a camouflage's block mostly has none: the arrows go on the
 /// list of those no renderer knows of, and `submit` draws them.
-pub fn arrows_to_draw(game: &Game<'_>, value: Vec<([i32; 3], u32)>) -> Vec<([i32; 3], u32)> {
+pub(in crate::game) fn arrows_to_draw(game: &Game<'_>, value: Vec<([i32; 3], u32)>) -> Vec<([i32; 3], u32)> {
     let mut out = value;
     STATE.with_borrow(|s| {
         for (p, _) in &s.camos {
@@ -352,7 +352,7 @@ fn camo_table(game: &mut Game<'_>) {
 }
 
 /// `ElevatorBlockBase.getShape`: what the pointer selects is the camouflage's.
-pub fn outline(game: &Game<'_>, pos: Pos) -> Option<Vec<[f64; 6]>> {
+pub(in crate::game) fn outline(game: &Game<'_>, pos: Pos) -> Option<Vec<[f64; 6]>> {
     let Some(horizon_client::containers::BlockEntity::Mod(m)) = game.world.block_entities.get(&(pos[0], pos[1], pos[2])) else {
         return None;
     };
@@ -469,7 +469,7 @@ fn play(game: &mut Game<'_>, sound: &str, pos: Pos) {
     }
 }
 
-pub fn right_click(game: &mut Game<'_>, pos: Pos, face: Pos, canceled: &mut bool) {
+pub(in crate::game) fn right_click(game: &mut Game<'_>, pos: Pos, face: Pos, canceled: &mut bool) {
     if !is_elevator(&game.native_block(pos)) {
         return;
     }
@@ -544,7 +544,7 @@ fn viewed(game: &Game<'_>) -> Option<(Pos, bool, bool, String, bool)> {
     Some((pos, directional, arrow, facing, camo))
 }
 
-pub fn screen(_game: &Game<'_>, block: &str, out: &mut Option<super::native_hooks::NativeScreen>) {
+pub(in crate::game) fn screen(_game: &Game<'_>, block: &str, out: &mut Option<super::native_hooks::NativeScreen>) {
     if is_elevator(block) {
         *out = Some(super::native_hooks::NativeScreen {
             width: 200.0,
@@ -572,7 +572,7 @@ fn draw_check(game: &Game<'_>, batch: &mut HudBatch, origin: [f32; 2], at: [f32;
     game.native_text(batch, label, [x + CHECK_SIZE + 4.0, y + 4.0], 0xE0E0E0, true);
 }
 
-pub fn screen_draw(game: &Game<'_>, block: &str, batch: &mut HudBatch, origin: [f32; 2]) {
+pub(in crate::game) fn screen_draw(game: &Game<'_>, block: &str, batch: &mut HudBatch, origin: [f32; 2]) {
     if !is_elevator(block) {
         return;
     }
@@ -610,7 +610,7 @@ pub fn screen_draw(game: &Game<'_>, block: &str, batch: &mut HudBatch, origin: [
     game.native_text(batch, &label, [x + (RESET[2] - w) / 2.0, y + 6.0], if camo { 0xFFFFFF } else { 0xA0A0A0 }, true);
 }
 
-pub fn screen_click(game: &Game<'_>, block: &str, at: [f32; 2], right: bool, button: &mut Option<i32>) {
+pub(in crate::game) fn screen_click(game: &Game<'_>, block: &str, at: [f32; 2], right: bool, button: &mut Option<i32>) {
     if !is_elevator(block) || right {
         return;
     }
@@ -636,7 +636,7 @@ pub fn screen_tooltip(block: &str, at: [f32; 2]) {
     }
 }
 
-pub fn menu_button(game: &mut Game<'_>, pos: Pos, entity: &mut ModBlockEntity, id: i32) {
+pub(in crate::game) fn menu_button(game: &mut Game<'_>, pos: Pos, entity: &mut ModBlockEntity, id: i32) {
     if !is_elevator(&entity.id) {
         return;
     }
@@ -693,7 +693,7 @@ fn key_held(game: &Game<'_>, mapping: &str) -> bool {
 }
 
 /// `ElevatorHandler.handleInput`, each client tick: a key's press, not its hold.
-pub fn client_tick(game: &mut Game<'_>) {
+pub(in crate::game) fn client_tick(game: &mut Game<'_>) {
     camo_table(game);
     let playing = game.player.is_some() && matches!(game.screen, super::Screen::Playing);
     let sneak = playing && key_held(game, "key.sneak");
@@ -724,24 +724,43 @@ fn origin_elevator(game: &Game<'_>) -> Option<Pos> {
     None
 }
 
-fn try_teleport(game: &mut Game<'_>, step: i32) {
-    let Some(from) = origin_elevator(game) else { return };
-    let Some(from_block) = elevator_at(game, from) else { return };
-    let mut to = from;
-    loop {
-        to[1] += step;
-        if (to[1] - from[1]).abs() > config().range || !(-2048..=4096).contains(&to[1]) {
-            return;
+/// The y of the first elevator `matches` accepts going `step` (1 up, -1 down) from `from_y`, within `range` blocks
+/// and the world's band; `None` past them. Used by the client to ask and by the server to decide.
+fn next_elevator_y(from_y: i32, step: i32, range: i32, mut matches: impl FnMut(i32) -> bool) -> Option<i32> {
+    let step = step.signum();
+    if step == 0 {
+        return None;
+    }
+    let mut y = i64::from(from_y);
+    for _ in 0..range.max(0) {
+        y += i64::from(step);
+        if !(-2048..=4096).contains(&y) {
+            return None;
         }
-        if let Some(to_block) = elevator_at(game, to)
-            && valid_pos(game, to)
-            && (!config().same_color || colour(&from_block) == colour(&to_block))
-        {
-            let message = format!("{} {} {} {} {} {}", from[0], from[1], from[2], to[0], to[1], to[2]);
-            let _ = game.native_net_send_to_server(NET_TELEPORT, message.as_bytes());
-            return;
+        if matches(y as i32) {
+            return Some(y as i32);
         }
     }
+    None
+}
+
+/// The elevator a ride from `from` goes to, `step` 1 up or -1 down: the next one in range, of the same colour when
+/// the option asks, with room to stand.
+fn destination(game: &Game<'_>, from: Pos, step: i32) -> Option<Pos> {
+    let from_block = elevator_at(game, from)?;
+    let y = next_elevator_y(from[1], step, config().range, |y| {
+        let to = [from[0], y, from[2]];
+        elevator_at(game, to).is_some_and(|to_block| valid_pos(game, to) && (!config().same_color || colour(&from_block) == colour(&to_block)))
+    })?;
+    Some([from[0], y, from[2]])
+}
+
+fn try_teleport(game: &mut Game<'_>, step: i32) {
+    let Some(from) = origin_elevator(game) else { return };
+    let Some(to) = destination(game, from, step) else { return };
+    // The server takes only the origin and the direction from this; it finds the destination itself.
+    let message = format!("{} {} {} {} {} {}", from[0], from[1], from[2], to[0], to[1], to[2]);
+    let _ = game.native_net_send_to_server(NET_TELEPORT, message.as_bytes());
 }
 
 /// A player's message: kept for the tick, one each.
@@ -761,7 +780,7 @@ pub fn from_client(player: u128, channel: &str, data: &[u8]) {
 }
 
 /// `native_server_tick`, at its end.
-pub fn server_tick(game: &mut Game<'_>) {
+pub(in crate::game) fn server_tick(game: &mut Game<'_>) {
     // Block.Properties.isValidSpawn: the option's answer, whatever the state's light. Once, when it's on.
     if config().mob_spawn {
         static TOLD: std::sync::Once = std::sync::Once::new();
@@ -789,20 +808,26 @@ pub fn server_tick(game: &mut Game<'_>) {
     let _ = game.enter_level(None, back);
 }
 
-/// `TeleportPacket.isBadTeleportPacket`, then `handle`.
-fn teleport(game: &mut Game<'_>, player: &horizon_client::mod_api::NativeServerPlayer, from: Pos, to: Pos) {
+/// Whether a client's origin is one it may ride from: near its player (by blocks, in i64 so far-off numbers can't
+/// overflow), and its destination in the same column. Only the direction of `to` is used after this.
+fn origin_near(at: [f64; 3], from: Pos, to: Pos, activation_range: i32) -> bool {
+    let at = at.map(|v| if v.is_finite() { v.floor() as i64 } else { i64::MAX / 4 });
+    let distance: i64 = (0..3).map(|i| (at[i] - i64::from(from[i])).abs()).sum();
+    distance <= i64::from(activation_range) && from[0] == to[0] && from[2] == to[2] && from[1] != to[1]
+}
+
+/// `TeleportPacket.isBadTeleportPacket`, then `handle`. The client names its origin and a destination; the server
+/// checks the origin and finds the destination itself from the direction (the next elevator within `range`), so a
+/// modified client can't go further or skip one.
+fn teleport(game: &mut Game<'_>, player: &horizon_client::mod_api::NativeServerPlayer, from: Pos, asked: Pos) {
     if player.health <= 0.0 || player.game_mode == 3 {
         return;
     }
-    let at = [player.position[0].floor() as i32, player.position[1].floor() as i32, player.position[2].floor() as i32];
-    let distance = (at[0] - from[0]).abs() + (at[1] - from[1]).abs() + (at[2] - from[2]).abs();
-    if distance > config().activation_range || from[0] != to[0] || from[2] != to[2] || from[1] == to[1] {
+    if !origin_near(player.position, from, asked, config().activation_range) || !valid_pos(game, from) {
         return;
     }
-    let (Some(from_block), Some(to_block)) = (elevator_at(game, from), elevator_at(game, to)) else { return };
-    if !valid_pos(game, to) || (config().same_color && colour(&from_block) != colour(&to_block)) {
-        return;
-    }
+    let step = (i64::from(asked[1]) - i64::from(from[1])).signum() as i32;
+    let Some(to) = destination(game, from, step) else { return };
     // XP: experience in points through the game's own command, as `giveExperiencePoints(-cost)`.
     if config().use_xp && player.game_mode != 1 {
         let cost = config().xp_points;
@@ -847,7 +872,7 @@ fn teleport(game: &mut Game<'_>, player: &horizon_client::mod_api::NativeServerP
 }
 
 /// The powered camouflages still there (a broken block's entity no longer ticks to say).
-pub fn sweep_powered(game: &Game<'_>) {
+pub(in crate::game) fn sweep_powered(game: &Game<'_>) {
     // (`elevator_at` reads the level in place: with another open, what stands there can't be told.)
     if game.levels_to_tick().len() > 1 {
         return;
@@ -862,7 +887,7 @@ pub fn sweep_powered(game: &Game<'_>) {
 
 /// `native_frame`: the Elevator in the kit: its guide pages, and its place on JEI's pages (Elevator adds no category
 /// of its own: its recipes are vanilla's, shown with everything else's).
-pub fn kit_frame(game: &mut Game<'_>) {
+pub(in crate::game) fn kit_frame(game: &mut Game<'_>) {
     if !game.native_on("elevatorid") {
         return;
     }
@@ -870,4 +895,47 @@ pub fn kit_frame(game: &mut Game<'_>) {
     elevatorid_optional::if_mod!("jei", {
         kit_layer::register(kit_layer::Provider::new("elevatorid"));
     } else { () });
+}
+
+#[cfg(test)]
+mod destination_tests {
+    use super::{next_elevator_y, origin_near};
+
+    #[test]
+    fn out_of_range_destinations_are_refused() {
+        // Elevators at 10 and 500, range 384: 500 is out of reach from 10.
+        let at = |y| y == 10 || y == 500;
+        assert_eq!(next_elevator_y(10, 1, 384, at), None);
+        assert_eq!(next_elevator_y(10, 1, 490, at), Some(500));
+        assert_eq!(next_elevator_y(500, -1, 384, at), None);
+        // The world's band ends the search however large the range.
+        assert_eq!(next_elevator_y(4090, 1, 4096, |y| y == 5000), None);
+        assert_eq!(next_elevator_y(-2040, -1, 4096, |y| y == -3000), None);
+        assert_eq!(next_elevator_y(i32::MAX, 1, i32::MAX, |_| true), None);
+        assert_eq!(next_elevator_y(i32::MIN, -1, i32::MAX, |_| true), None);
+    }
+
+    #[test]
+    fn the_next_elevator_is_taken_never_a_further_one() {
+        let at = |y| [0, 5, 9, 20].contains(&y);
+        assert_eq!(next_elevator_y(0, 1, 384, at), Some(5));
+        assert_eq!(next_elevator_y(5, 1, 384, at), Some(9));
+        assert_eq!(next_elevator_y(20, -1, 384, at), Some(9));
+        assert_eq!(next_elevator_y(0, -1, 384, at), None);
+        // Only the direction of a request counts: a step of 15 is still one elevator up.
+        assert_eq!(next_elevator_y(0, 15, 384, at), Some(5));
+        assert_eq!(next_elevator_y(0, 0, 384, at), None);
+    }
+
+    #[test]
+    fn far_off_origins_and_columns_are_refused_without_overflow() {
+        let me = [0.5, 64.0, 0.5];
+        assert!(origin_near(me, [0, 63, 0], [0, 80, 0], 6));
+        assert!(!origin_near(me, [0, 63, 0], [1, 80, 0], 6));
+        assert!(!origin_near(me, [0, 63, 0], [0, 63, 0], 6));
+        assert!(!origin_near(me, [0, 50, 0], [0, 80, 0], 6));
+        assert!(!origin_near(me, [i32::MIN, i32::MIN, i32::MIN], [i32::MIN, i32::MAX, i32::MIN], 6));
+        assert!(!origin_near(me, [i32::MAX, i32::MAX, i32::MAX], [i32::MAX, 0, i32::MAX], 1024));
+        assert!(!origin_near([f64::NAN, 64.0, 0.5], [0, 63, 0], [0, 80, 0], 6));
+    }
 }

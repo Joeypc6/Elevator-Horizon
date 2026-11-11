@@ -5,5 +5,5 @@ fn kit_guide_render_post_elevatorid(game: &crate::game::Game<'_>, batch: &mut ho
     }
     crate::game::hz_kit_guide_elevatorid::screen_frame(screen.id, screen.menu);
     crate::game::hz_kit_guide_elevatorid::draw(game, batch, screen.mouse);
-} else { () })
+} else { let _ = (game, batch, screen); () })
 }

@@ -3,5 +3,5 @@ fn kit_guide_frame_elevatorid(game: &mut crate::game::Game<'_>) {
     if game.player.is_some() {
         crate::game::hz_kit_guide_elevatorid::frame_hook(game);
     }
-} else { () })
+} else { let _ = game; () })
 }

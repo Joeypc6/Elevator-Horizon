@@ -4,5 +4,5 @@ fn kit_guide_char_elevatorid(game: &crate::game::Game<'_>, c: char, canceled: &m
     if game.player.is_some() && crate::game::hz_kit_guide_elevatorid::is_open() {
         *canceled = true;
     }
-} else { () })
+} else { let _ = (game, c, canceled); () })
 }

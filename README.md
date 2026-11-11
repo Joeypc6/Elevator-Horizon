@@ -13,6 +13,8 @@ another block (with its light, tint, shape and collision), made directional, and
 holds the Java mod's options: `sameColor`, `range`, `activationRange`, `precisionTarget`, `mobSpawn`, `resetPitchNormal`,
 `resetPitchDirectional`, `useXP` and `XPPointsAmount`.
 
+In multiplayer the server finds the destination itself from the way the player asked to go: the next elevator within `range`, never one further or past it, whatever a client sends.
+
 With JEI for Horizon in the build, its recipes and the W guide work with no other mod needed.
 
 ## What differs from the Java mod

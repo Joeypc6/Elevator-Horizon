@@ -12,9 +12,9 @@ ROOT = pathlib.Path(__file__).resolve().parent.parent
 BUNDLE = ROOT / "mixins" / "elevatorid"
 BUILD = ROOT.parent / "native-build" / "main" / "elevatorid"
 JAR = ROOT.parent / "Ported" / "elevatorid-fabric-26.3-1.16.6.jar"
-HORIZON = "6560641ba51a452f6bc2407baa4eb1b3be517ca8"
+HORIZON = "fdc87aecdbd116bf1e08adcd062fcbaea8c2e2ca"
 MIXINS = "5a64af938ec86b00d53d16a408aabc0038fb3e57"
-VERSION = "1.16.7"
+VERSION = "1.16.8"
 M = "crate::game::elevatorid"
 
 GAME_MUT = ("game", "&mut crate::game::Game<'_>", "&mut *self")
@@ -79,7 +79,7 @@ fn elevator_mesh_camos(value: (), pad: &mut Padded, region: &[[Option<&Chunk>; 3
 fn elevator_listed(mods: &mut Vec<crate::game::native_hooks::NativeMod>) {
     mods.push(crate::game::native_hooks::NativeMod {
         id: "elevatorid".into(),
-        title: "Elevator 1.16.7".into(),
+        title: "Elevator 1.16.8".into(),
         description: "Blocks that lift you to the next one of their colour.".into(),
         keys: vec![["guide".to_string(), "Open Guide for Items".to_string(), "key.keyboard.w".to_string()]],
     });
@@ -239,6 +239,9 @@ def main():
     (BUNDLE / "horizon-mixin.toml").write_text("\n".join(out), encoding="utf8")
     # The JEI window, Mob Drops, World Gen, the creative panel and the W guide: this mod's own copy.
     subprocess.run([sys.executable, str(ROOT.parent / "jei-kit" / "apply.py"), "elevatorid", str(BUNDLE)], check=True)
+    # The registry checks with -D warnings: helpers' unused parameters, and those of the `else` a missing mod leaves.
+    for fixer in ("unused_helper_params.py", "use_helper_params.py"):
+        subprocess.run([sys.executable, str(ROOT.parent / "tools" / fixer), str(BUNDLE)], check=True)
     (BUNDLE / "data").mkdir(exist_ok=True)
     subprocess.run([sys.executable, str(ROOT / "tools" / "make_content.py"), str(JAR), str(BUNDLE / "data" / "elevatorid-content.hmod")], check=True)
     # The dev build folder: pinned, with no hooks number, so the pin applies.
