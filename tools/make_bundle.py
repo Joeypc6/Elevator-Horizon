@@ -14,7 +14,7 @@ BUILD = ROOT.parent / "native-build" / "main" / "elevatorid"
 JAR = ROOT.parent / "Ported" / "elevatorid-fabric-26.3-1.16.6.jar"
 HORIZON = "fdc87aecdbd116bf1e08adcd062fcbaea8c2e2ca"
 MIXINS = "5a64af938ec86b00d53d16a408aabc0038fb3e57"
-VERSION = "1.16.8"
+VERSION = "1.16.9"
 M = "crate::game::elevatorid"
 
 GAME_MUT = ("game", "&mut crate::game::Game<'_>", "&mut *self")
